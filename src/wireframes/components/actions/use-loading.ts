@@ -41,6 +41,17 @@ export function useLoading() {
         tooltip: texts.common.newDiagramTooltip,
         onAction: doNew,
     }), [doNew]);
+        
+    const loadDiagram: UIAction = React.useMemo(() => ({
+        disabled: false,
+        icon: 'icon-upload',
+        label: 'Load', // TODO: change to var
+        // label: texts.common.newDiagram,
+        shortcut: 'MOD + L', // TODO: check if available
+        tooltip: 'Load diagram',
+        // onAction: , // omitted since it's passe from LoadingMenu
+        // tooltip: texts.common.newDiagramTooltip,
+    }), []);
 
     const saveDiagram: UIAction = React.useMemo(() => ({
         disabled: !canSave,
@@ -51,5 +62,5 @@ export function useLoading() {
         onAction: doSave,
     }), [doSave, canSave]);
 
-    return { newDiagram: newDiagramAction, saveDiagram };
+    return { newDiagram: newDiagramAction, loadDiagram, saveDiagram };
 }

@@ -29,8 +29,10 @@ export interface UIAction {
     // True when disabled.
     disabled: boolean;
 
+
+
     // The method to invoke the action.
-    onAction: () => void;
+    onAction?: () => void; // Not needed for action that expects additional UI
 }
 
 export type UniqueValue<TValue> = { value?: TValue; empty?: boolean };

@@ -17,12 +17,11 @@ import { changeColor, changeSize, getEditor, useStore } from '@app/wireframes/mo
 export interface SettingsMenuProps {
     // The print callback.
     onPrint: () => void;
-    onExport: () => void;
+    onExport?: () => void;
 }
 
 export const SettingsMenu = React.memo((props: SettingsMenuProps) => {
     const { onPrint, onExport } = props;
-
 
     const dispatch = useDispatch();
     const editor = useStore(getEditor);

@@ -15,7 +15,14 @@ import { ActionMenuButton, useLoading } from './../actions';
 
 const text = require('@app/legal.html');
 
-export const LoadingMenu = React.memo(() => {
+export interface LoadingMenuProps {
+    // The print callback.
+    onImport?: () => void;
+}
+
+export const LoadingMenu = React.memo((props: LoadingMenuProps) => {
+    const { onImport } = props;
+
     const forLoading = useLoading();
     const tokenToRead = useStore(s => s.loading.tokenToRead);
     const tokenToWrite = useStore(s => s.loading.tokenToWrite);
@@ -33,7 +40,9 @@ export const LoadingMenu = React.memo(() => {
     React.useEffect(() => {
         if (tokenToWrite) {
             const timer = setInterval(() => {
-                if (!saveAction.current.disabled) {
+                if (!saveAction.current.disabled &&
+                    saveAction.current.onAction
+                ) {
                     saveAction.current.onAction();
                 }
             }, 30000);
@@ -51,6 +60,12 @@ export const LoadingMenu = React.memo(() => {
             <CustomTitle token={tokenToRead} />
 
             <ActionMenuButton showLabel action={forLoading.newDiagram} />
+            <ActionMenuButton showLabel 
+                action={Object.assign(
+                    { onAction: onImport }, // Adds param showUI mapped to onImport trigger fn
+                    forLoading.loadDiagram
+                )}
+            />
             <ActionMenuButton showLabel action={forLoading.saveDiagram} type='primary' />
 
             <Button className='menu-item' size='large' onClick={doToggleInfoDialog}>

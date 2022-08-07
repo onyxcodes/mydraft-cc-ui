@@ -28,8 +28,8 @@ export const ArrangeMenu = React.memo(() => {
             <ActionMenuButton action={forGrouping.group} />
             <ActionMenuButton action={forGrouping.ungroup} />
 
-            <Shortcut disabled={forRemvoe.remove.disabled} onPressed={forRemvoe.remove.onAction} keys='del' />
-            <Shortcut disabled={forRemvoe.remove.disabled} onPressed={forRemvoe.remove.onAction} keys='backspace' />
+            <Shortcut disabled={forRemvoe.remove.disabled} onPressed={forRemvoe.remove.onAction!} keys='del' />
+            <Shortcut disabled={forRemvoe.remove.disabled} onPressed={forRemvoe.remove.onAction!} keys='backspace' />
 
             <Shortcut disabled={!selectedDiagram} onPressed={doSelectAll} keys='MOD + A' />
         </>

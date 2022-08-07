@@ -148,3 +148,6 @@
 .icon-undo:before {
   content: "\e166";
 }
+.icon-upload:before {
+  content: "\e9c6";
+}

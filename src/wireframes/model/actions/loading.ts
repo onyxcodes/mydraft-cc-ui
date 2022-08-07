@@ -37,6 +37,28 @@ export const loadDiagramAsync =
         return { tokenToRead: args.tokenToRead, tokenToWrite: args.tokenToWrite, actions };
     });
 
+export const download = (dataurl: string, filename: string): void => {
+    const link = document.createElement('a');
+    link.href = dataurl;
+    link.download = filename;
+    link.click();
+    link.remove();
+};
+      
+export const saveDiagramLocal = 
+    createAsyncThunk('diagram/save-local', async (args: { navigate?: boolean }, thunkAPI) => {
+        const state = thunkAPI.getState() as LoadingStateInStore & EditorStateInStore;
+
+        const tokenToWrite = state.loading.tokenToWrite;
+        const tokenToRead = state.loading.tokenToRead;
+
+        const body = JSON.stringify(state.editor.actions);
+        
+        var myfileURL = URL.createObjectURL(new Blob([body], { type: 'application/json' }));
+        download( myfileURL, ( tokenToRead ? tokenToRead.concat('.draft') : 'diagram.draft' ) );
+        return { tokenToRead, tokenToWrite, update: false, navigate: args.navigate };
+    });
+
 export const saveDiagramAsync =
     createAsyncThunk('diagram/save', async (args: { navigate?: boolean }, thunkAPI) => {
         const state = thunkAPI.getState() as LoadingStateInStore & EditorStateInStore;

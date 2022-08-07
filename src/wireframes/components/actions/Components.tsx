@@ -11,7 +11,13 @@ import * as React from 'react';
 import { isMac, Shortcut, Types } from '@app/core';
 import { UIAction } from './shared';
 
-type ActionProps = { action: UIAction; showLabel?: boolean; type?: ButtonType; hideWhenDisabled?: boolean };
+type ActionProps = { 
+    action: UIAction;
+    showLabel?: boolean;
+    type?:
+    ButtonType;
+    hideWhenDisabled?: boolean
+};
 
 export const ActionMenuButton = React.memo((props: ActionProps) => {
     const {
@@ -44,7 +50,7 @@ export const ActionMenuButton = React.memo((props: ActionProps) => {
             </Tooltip>
 
             {shortcut &&
-                <Shortcut disabled={disabled} onPressed={onAction} keys={shortcut} />
+                <Shortcut disabled={disabled} onPressed={onAction!} keys={shortcut} />
             }
         </>
     );

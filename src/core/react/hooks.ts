@@ -108,69 +108,63 @@ export function usePrinter(): [() => void, () => void, boolean, React.MutableRef
     return [doPrint, doMakeReady, isPrinting, printRef];
 }
 
-export function useExport( props: { content: () => React.ReactInstance | null; onAfterExecute?: () => void } ): any {
-    const { content, onAfterExecute } = props;
+// TODO: Remove, should be useless
+export function useImport( props: { content: () => React.ReactInstance | null; onAfterExecute?: () => void } ): any {
+    const { content } = props;
+    // const { content, onAfterExecute } = props;
 
     // TODO: change logic in a way that on a trigger execution and successful completion
     // of its relative procedure, it calls the onAfterExecute fn
-    const executeExport = (): void => {
-        console.log('Executing export');
-        onAfterExecute && setTimeout( () => onAfterExecute(), 10000);
-    };
-    executeExport();
+    // const executeExport = (): void => {
+    //     console.log('Executing export');
+    //     onAfterExecute && setTimeout( () => onAfterExecute(), 10000);
+    // };
+    // executeExport();
     return content;
 }
 
-export function useExporter(): [() => void, () => void, boolean, React.MutableRefObject<any>] {
-    const [isExporting, setIsExporting] = React.useState(false);
-    const [isExportingReady, setIsExportingReady] = React.useState(false);
-    // const exportMode = false; // TODO: Should be useless
-    const exportRef = React.useRef<any>();
-    if ( exportRef && exportRef.current ) {
-        console.log('Got export ref', exportRef.current);
-        debugger;
-    } 
-    const exporter = useExport({
-        content: () => exportRef.current!,
+export function useImporter(): [() => void, () => void, () => void, boolean, React.MutableRefObject<any>] {
+    const [isImporting, setIsImporting] = React.useState(false);
+    const [isImportingReady, setIsImportingReady] = React.useState(false);
+    const importRef = React.useRef<any>();
+
+    const importer = useImport({
+        content: () => importRef.current!,
         onAfterExecute: () => {
-            setIsExporting(false);
-            setIsExportingReady(false);
+            setIsImporting(false);
+            setIsImportingReady(false);
         },
     });
 
-    // Should be useless
-    // React.useEffect(() => {
-    //     // if (!printMode) {
-    //     if (!false) { // TODO: change accordingly
-    //         setIsExporting(false);
-    //     }
-    // }, []);
-
     // If exporting ready flag is set to true
-    // executes after 2000 ms the exporter cmp-fn
+    // executes after 2000 ms the importer cmp-fn
     React.useEffect(() => {
         let timer: any = 0;
 
-        if (isExportingReady) {
+        if (isImportingReady) {
             timer = setTimeout(() => {
-                exporter && exporter();
+                importer && importer();
             }, 2000);
         }
 
         return () => {
             clearTimeout(timer);
         };
-    }, [isExportingReady, exporter]);
+    }, [isImportingReady, importer]);
 
     // 
     const doExport = React.useCallback(() => {
-        setIsExporting(true);
+        setIsImporting(true);
     }, []);
 
-    // When called marks isExporting flag to tru
+    // When called marks isImporting flag to tru
     const doMakeReady = React.useCallback(() => {
-        setIsExportingReady(true);
+        setIsImportingReady(true);
     }, []);
 
-    return [doExport, doMakeReady, isExporting, exportRef];
+    const cancelImport = React.useCallback(() => {
+        setIsImporting(false);
+    }, []);
+
+    return [doExport, doMakeReady, cancelImport, isImporting, importRef];
 }
