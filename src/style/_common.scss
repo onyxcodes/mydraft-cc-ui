@@ -310,3 +310,14 @@ $sidebar-size: 320px;
         display: none;
     }
 }
+
+/* DRAFTS for EXPORT */
+
+.export-mode {
+    position: absolute;
+    z-index: 999;
+    background: blue;
+    height: 100%;
+    top: 0;
+    width: 100%;
+}

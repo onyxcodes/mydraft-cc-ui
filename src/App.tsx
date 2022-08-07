@@ -11,11 +11,12 @@ import classNames from 'classnames';
 import * as React from 'react';
 import { useDispatch } from 'react-redux';
 import { useRouteMatch } from 'react-router';
-import { usePrinter } from '@app/core';
+import { usePrinter, useExporter } from '@app/core';
 import { ArrangeMenu, ClipboardMenu, CustomProperties, EditorView, HistoryMenu, Icons, LayoutProperties, LoadingMenu, LockMenu, MoreProperties, Pages, PrintView, Recent, SettingsMenu, Shapes, UIMenu, VisualProperties } from '@app/wireframes/components';
 import { loadDiagramAsync, newDiagram, selectTab, showInfoToast, toggleLeftSidebar, toggleRightSidebar, useStore } from '@app/wireframes/model';
 import { texts } from './texts';
 import { PresentationView } from './wireframes/components/PresentationView';
+import { ExportView } from './wireframes/components/ExportView';
 
 const logo = require('./images/logo.svg').default;
 
@@ -30,11 +31,20 @@ export const App = () => {
     const [presenting, setPresenting] = React.useState(false);
 
     const [
+        doExport,
+        exportReady,
+        isExporting,
+        exportRef,
+    ] = useExporter();
+
+    const [
         print,
         printReady,
         isPrinting,
         ref,
     ] = usePrinter();
+
+   
 
     React.useEffect(() => {
         const token = routeTokenSnapshot.current;
@@ -51,6 +61,13 @@ export const App = () => {
             dispatch(showInfoToast('Printing started...'));
         }
     }, [dispatch, isPrinting]);
+
+    //
+    React.useEffect(() => {
+        if (isExporting) {
+            dispatch(showInfoToast('Export started...'));
+        }
+    }, [dispatch, isExporting]);
 
     const doSelectTab = React.useCallback((key: string) => {
         dispatch(selectTab(key));
@@ -93,7 +110,7 @@ export const App = () => {
                     <UIMenu onPlay={doPresent} />
                     <span className='menu-separator' />
 
-                    <SettingsMenu onPrint={print} />
+                    <SettingsMenu onPrint={print} onExport={doExport} />
 
                     <span style={{ float: 'right' }}>
                         <LoadingMenu />
@@ -163,6 +180,12 @@ export const App = () => {
             {isPrinting &&
                 <div className='print-mode' ref={ref}>
                     <PrintView onRender={printReady} />
+                </div>
+            }
+
+            {isExporting &&
+                <div className='export-mode' ref={exportRef}>
+                    <ExportView onRender={exportReady} />
                 </div>
             }
         </>

@@ -67,9 +67,10 @@ export function usePrinter(): [() => void, () => void, boolean, React.MutableRef
     const [isPrintingReady, setIsPrintingReady] = React.useState(false);
     const printMode = useDetectPrint();
     const printRef = React.useRef<any>();
-
     const printer = useReactToPrint({
-        content: () => printRef.current!,
+        content: () => {
+            return printRef.current!;
+        },
         onAfterPrint: () => {
             setIsPrinting(false);
             setIsPrintingReady(false);
@@ -105,4 +106,71 @@ export function usePrinter(): [() => void, () => void, boolean, React.MutableRef
     }, []);
 
     return [doPrint, doMakeReady, isPrinting, printRef];
+}
+
+export function useExport( props: { content: () => React.ReactInstance | null; onAfterExecute?: () => void } ): any {
+    const { content, onAfterExecute } = props;
+
+    // TODO: change logic in a way that on a trigger execution and successful completion
+    // of its relative procedure, it calls the onAfterExecute fn
+    const executeExport = (): void => {
+        console.log('Executing export');
+        onAfterExecute && setTimeout( () => onAfterExecute(), 10000);
+    };
+    executeExport();
+    return content;
+}
+
+export function useExporter(): [() => void, () => void, boolean, React.MutableRefObject<any>] {
+    const [isExporting, setIsExporting] = React.useState(false);
+    const [isExportingReady, setIsExportingReady] = React.useState(false);
+    // const exportMode = false; // TODO: Should be useless
+    const exportRef = React.useRef<any>();
+    if ( exportRef && exportRef.current ) {
+        console.log('Got export ref', exportRef.current);
+        debugger;
+    } 
+    const exporter = useExport({
+        content: () => exportRef.current!,
+        onAfterExecute: () => {
+            setIsExporting(false);
+            setIsExportingReady(false);
+        },
+    });
+
+    // Should be useless
+    // React.useEffect(() => {
+    //     // if (!printMode) {
+    //     if (!false) { // TODO: change accordingly
+    //         setIsExporting(false);
+    //     }
+    // }, []);
+
+    // If exporting ready flag is set to true
+    // executes after 2000 ms the exporter cmp-fn
+    React.useEffect(() => {
+        let timer: any = 0;
+
+        if (isExportingReady) {
+            timer = setTimeout(() => {
+                exporter && exporter();
+            }, 2000);
+        }
+
+        return () => {
+            clearTimeout(timer);
+        };
+    }, [isExportingReady, exporter]);
+
+    // 
+    const doExport = React.useCallback(() => {
+        setIsExporting(true);
+    }, []);
+
+    // When called marks isExporting flag to tru
+    const doMakeReady = React.useCallback(() => {
+        setIsExportingReady(true);
+    }, []);
+
+    return [doExport, doMakeReady, isExporting, exportRef];
 }

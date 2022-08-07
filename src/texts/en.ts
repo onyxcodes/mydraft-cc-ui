@@ -57,6 +57,7 @@ export const texts = {
         paste: 'Paste',
         pasteTooltip: 'Paste Items',
         printDiagrams: 'Print Diagrams',
+        exportDiagrams: 'Export Diagrams',
         recent: 'Recent',
         redo: 'Redo',
         remove: 'Delete',

@@ -5,7 +5,7 @@
  * Copyright (c) Sebastian Stehle. All rights reserved.
 */
 
-import { ExportOutlined, PrinterOutlined, SettingOutlined } from '@ant-design/icons';
+import { ExportOutlined, PrinterOutlined, SettingOutlined, SaveOutlined } from '@ant-design/icons';
 import { Button, Col, Dropdown, InputNumber, Menu, Modal, Row, Tooltip } from 'antd';
 import MenuItem from 'antd/lib/menu/MenuItem';
 import * as React from 'react';
@@ -17,10 +17,12 @@ import { changeColor, changeSize, getEditor, useStore } from '@app/wireframes/mo
 export interface SettingsMenuProps {
     // The print callback.
     onPrint: () => void;
+    onExport: () => void;
 }
 
 export const SettingsMenu = React.memo((props: SettingsMenuProps) => {
-    const { onPrint } = props;
+    const { onPrint, onExport } = props;
+
 
     const dispatch = useDispatch();
     const editor = useStore(getEditor);
@@ -61,8 +63,11 @@ export const SettingsMenu = React.memo((props: SettingsMenuProps) => {
 
     const exportMenu =
         <Menu>
-            <MenuItem onClick={onPrint}>
+            <MenuItem key="print" onClick={onPrint}>
                 <PrinterOutlined /> {texts.common.printDiagrams}
+            </MenuItem>
+            <MenuItem key="export" onClick={onExport}>
+                <SaveOutlined /> {texts.common.exportDiagrams}
             </MenuItem>
         </Menu>;
 
