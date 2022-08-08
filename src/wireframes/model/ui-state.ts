@@ -6,6 +6,7 @@
 */
 
 export interface UIState {
+    showImportModal: boolean;
     // The current zoom level.
     zoom: number;
 
@@ -39,6 +40,7 @@ export const createInitialUIState: () => UIState = () => {
     return {
         zoom: 1,
         selectedTab: 'shapes',
+        showImportModal: false,
         showLeftSidebar: true,
         showRightSidebar: true,
         selectedColorTab: 'palette',

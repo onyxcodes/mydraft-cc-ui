@@ -31,6 +31,9 @@ export const toggleLeftSidebar =
 export const toggleRightSidebar =
     createAction('ui/toggleRightSidebar');
 
+export const toggleImportModal =
+    createAction('ui/toggleImportModal');
+
 export const filterDiagrams =
     createAction<{ filter: string }>('ui/diagrams/filter');
 
@@ -67,5 +70,8 @@ export function ui(initialState: UIState): Reducer<UIState> {
         })
         .addCase(toggleRightSidebar, (state) => {
             state.showRightSidebar = !state.showRightSidebar;
+        })
+        .addCase(toggleImportModal, (state) => {
+            state.showImportModal = !state.showImportModal;
         }));
 }

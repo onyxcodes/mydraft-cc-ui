@@ -11,13 +11,14 @@ import classNames from 'classnames';
 import * as React from 'react';
 import { useDispatch } from 'react-redux';
 import { useRouteMatch } from 'react-router';
-import { usePrinter, useImporter } from '@app/core';
+import { usePrinter } from '@app/core';
+// import { usePrinter, useImporter } from '@app/core';
 import { ArrangeMenu, ClipboardMenu, CustomProperties, EditorView, HistoryMenu, Icons, LayoutProperties, LoadingMenu, LockMenu, MoreProperties, Pages, PrintView, Recent, SettingsMenu, Shapes, UIMenu, VisualProperties } from '@app/wireframes/components';
-import { loadDiagramAsync, newDiagram, selectTab, showInfoToast, toggleLeftSidebar, toggleRightSidebar, useStore } from '@app/wireframes/model';
+import { loadDiagramAsync, newDiagram, selectTab, showInfoToast, toggleLeftSidebar, toggleRightSidebar, toggleImportModal, useStore } from '@app/wireframes/model';
 import { texts } from './texts';
 import { PresentationView } from './wireframes/components/PresentationView';
 import { ImportView } from './wireframes/components/ImportView';
-import { saveDiagramLocal } from '@app/wireframes/model';
+import { saveDiagramLocal, loadDiagramLocal } from '@app/wireframes/model';
 
 const logo = require('./images/logo.svg').default;
 
@@ -29,16 +30,8 @@ export const App = () => {
     const selectedTab = useStore(s => s.ui.selectedTab);
     const showLeftSidebar = useStore(s => s.ui.showLeftSidebar);
     const showRightSidebar = useStore(s => s.ui.showRightSidebar);
+    const showImportModal = useStore(s => s.ui.showImportModal);
     const [presenting, setPresenting] = React.useState(false);
-    const [ filePath, setFilePath ] = React.useState<string | undefined>("");
-
-    const [
-        doImport,
-        exportReady,
-        cancelImport,
-        isImporting,
-        exportRef,
-    ] = useImporter();
 
     const [
         print,
@@ -65,13 +58,6 @@ export const App = () => {
         }
     }, [dispatch, isPrinting]);
 
-    // TODO: consider adapting
-    React.useEffect(() => {
-        if (isImporting) {
-            dispatch(showInfoToast('Importing started...'));
-        }
-    }, [dispatch, isImporting]);
-
     const doSelectTab = React.useCallback((key: string) => {
         dispatch(selectTab(key));
     }, [dispatch]);
@@ -84,6 +70,10 @@ export const App = () => {
         dispatch(toggleRightSidebar());
     }, [dispatch]);
 
+    const doToggleImportModal = React.useCallback(() => {
+        dispatch(toggleImportModal());
+    }, [dispatch]);
+
     const doEdit = React.useCallback(() => {
         setPresenting(false);
     }, []);
@@ -92,23 +82,16 @@ export const App = () => {
         setPresenting(true);
     }, []);
 
-    const doSetFilePath = (path: string | undefined) => React.useCallback(() => {
-        setFilePath(path)
-    }, []);
+    const doConfirmImport = React.useCallback((confirmed: boolean, file?: File) => {
+        if ( confirmed && file ) {
+            dispatch(loadDiagramLocal({ file, navigate: true }));
+        }
+    }, [dispatch]);
 
-    const doCancelImport = React.useCallback(() => {
-        cancelImport();
-    }, []);
 
     const doExport = React.useCallback(() => {
-        dispatch(saveDiagramLocal({ navigate: false }))
-        // cancelExport();
-    }, []);
-
-    const doConfirmImport = React.useCallback(() => {
-        // dispatch(saveDiagramLocal({ navigate: false }))
-        cancelImport();
-    }, []);
+        dispatch(saveDiagramLocal({ navigate: true }))
+    }, [dispatch]);
 
     return (
         <>
@@ -131,12 +114,11 @@ export const App = () => {
                     <UIMenu onPlay={doPresent} />
                     <span className='menu-separator' />
 
-                    {/* <SettingsMenu onPrint={print} /> */}
                     <SettingsMenu onPrint={print} onExport={doExport} />
 
                     <span style={{ float: 'right' }}>
                         <LoadingMenu
-                            onImport={doImport}
+                            onImport={doToggleImportModal}
                         />
                     </span>
                 </Layout.Header>
@@ -207,17 +189,13 @@ export const App = () => {
                 </div>
             }
 
-            {isImporting &&
-                <div className='export-mode' ref={exportRef}>
-                    <ImportView 
-                        onRender={exportReady}
-                        setFilePath={doSetFilePath}
-                        confirm={doConfirmImport}
-                        cancel={doCancelImport}
-                        path={filePath}
-                    />
-                </div>
+            {showImportModal &&
+                <ImportView 
+                    confirm={(confirm, file) => doConfirmImport(confirm, file) }
+                    cancel={doToggleImportModal}
+                />
             }
+            
         </>
     );
 };

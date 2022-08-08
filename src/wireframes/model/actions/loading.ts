@@ -11,12 +11,51 @@ import { AnyAction, Reducer } from 'redux';
 import { EditorState, EditorStateInStore, LoadingState, LoadingStateInStore, saveRecentDiagrams, UndoableState } from './../internal';
 import { addDiagram } from './diagrams';
 import { selectItems } from './items';
-import { showErrorToast, showInfoToast } from './ui';
+import { showErrorToast, showInfoToast, toggleImportModal } from './ui';
 
 const API_URL = process.env.NODE_ENV === 'test_development' ? 'http://localhost:4000' : 'https://api.mydraft.cc';
 
 export const newDiagram =
     createAction<{ navigate: boolean }>('diagram/new');
+
+export interface EditorActions {
+    type: string;
+    payload: {
+        diagramId: string;
+        timestamp: number;
+    };
+}[];
+
+export const readFile = (file: File): Promise<EditorActions> => {
+    return new Promise( (resolve, reject) => {
+        var reader = new FileReader();
+        var result: EditorActions;
+        reader.onload = () => {
+            try {
+                if ( reader.result && typeof(reader.result) == 'string' ) {
+                    result = JSON.parse(reader.result);
+                    resolve(result);
+                } else reject('Not a JSON');
+            } catch (e) {
+                reject(e);
+            }
+        };
+        reader.onerror = (e) => reject(e);
+        reader.readAsText(file);
+    });
+};
+
+export const loadDiagramLocal =
+    createAsyncThunk('diagram/load-local', async (args: { file: File; tokenToRead?: string; tokenToWrite?: string; navigate: boolean }) => {
+    
+        const actions = await readFile(args.file);
+        // TODO: verify it's the correct criteria for diagrams naming
+        // also consider taking the name of the file
+        const tokenToRead = actions?.[0]?.payload.diagramId
+            .replaceAll('-', '');
+
+        return { tokenToRead: tokenToRead, tokenToWrite: tokenToRead, actions, navigate: args.navigate };
+    });
 
 export const loadDiagramAsync =
     createAsyncThunk('diagram/load', async (args: { tokenToRead: string; tokenToWrite?: string; navigate: boolean }, thunkAPI) => {
@@ -33,7 +72,6 @@ export const loadDiagramAsync =
         }
 
         const actions = await response.json();
-
         return { tokenToRead: args.tokenToRead, tokenToWrite: args.tokenToWrite, actions };
     });
 
@@ -49,11 +87,11 @@ export const saveDiagramLocal =
     createAsyncThunk('diagram/save-local', async (args: { navigate?: boolean }, thunkAPI) => {
         const state = thunkAPI.getState() as LoadingStateInStore & EditorStateInStore;
 
+        const body = JSON.stringify(state.editor.actions);
+
         const tokenToWrite = state.loading.tokenToWrite;
         const tokenToRead = state.loading.tokenToRead;
 
-        const body = JSON.stringify(state.editor.actions);
-        
         var myfileURL = URL.createObjectURL(new Blob([body], { type: 'application/json' }));
         download( myfileURL, ( tokenToRead ? tokenToRead.concat('.draft') : 'diagram.draft' ) );
         return { tokenToRead, tokenToWrite, update: false, navigate: args.navigate };
@@ -115,7 +153,12 @@ export function loadingMiddleware(): Middleware {
             }
 
             store.dispatch(showInfoToast('Successfully loaded diagram.'));
-        } else if (loadDiagramAsync.rejected.match(action)) {
+        } else if (loadDiagramLocal.fulfilled.match(action)) {
+            // TODO: manage navigation towards tokenToRead ?
+
+            store.dispatch(toggleImportModal());
+            store.dispatch(showInfoToast('Successfully loaded diagram.'));
+        } else if (loadDiagramAsync.rejected.match(action) || loadDiagramLocal.rejected.match(action)) {
             store.dispatch(showErrorToast('Failed to load diagram.'));
         } else if (saveDiagramAsync.fulfilled.match(action)) {
             if (action.meta.arg.navigate) {
@@ -182,7 +225,7 @@ export function rootLoading(innerReducer: Reducer<any>, undoableReducer: Reducer
             const initialState = editorReducer(EditorState.empty(), initialAction);
 
             state = UndoableState.create(initialState, initialAction);
-        } else if (loadDiagramAsync.fulfilled.match(action)) {
+        } else if (loadDiagramAsync.fulfilled.match(action) || loadDiagramLocal.fulfilled.match(action)) {
             const { actions } = action.payload as { actions: AnyAction[] };
 
             let firstAction = actions[0];
