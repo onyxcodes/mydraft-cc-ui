@@ -32,8 +32,8 @@ const plugins = {
     StylelintPlugin: require('stylelint-webpack-plugin'),
     // https://www.npmjs.com/package/webpack-bundle-analyzer
     BundleAnalyzerPlugin: require('webpack-bundle-analyzer').BundleAnalyzerPlugin,
-    // https://github.com/jantimon/favicons-webpack-plugin
-    FaviconsWebpackPlugin: require('favicons-webpack-plugin'),
+    // https://github.com/drolsen/webpack-favicons
+    WebpackFavicons: require('webpack-favicons'),
     // https://github.com/GoogleChrome/workbox/tree/master/packages/workbox-webpack-plugin
     GenerateSW: require('workbox-webpack-plugin').GenerateSW,
 };
@@ -147,19 +147,23 @@ module.exports = function configure(env) {
                     context: '/',
                 },
             }),
-
-            new plugins.FaviconsWebpackPlugin({
-                // Favicon source logo
-                logo: 'src/images/logo-square.png',
-                // Favicon app title
-                title: 'MyDraft',
-                favicons: {
-                    appName: 'mydraft.cc',
-                    appDescription: 'Open Source Wireframe Editor',
-                    developerName: 'Sebastian Stehle',
-                    developerUrl: 'https://sstehle.com',
-                    start_url: '/',
+            /**
+             * BUG: In development env, this favicon won't be generated, seems like
+             * it doesn't map the resource path correctly when using webpack-dev-server
+             */
+            new plugins.WebpackFavicons({
+                src: 'src/images/logo-square.png',
+                path: 'assets/',
+                background: '#000',
+                theme_color: '#000',
+                icons: {
+                  favicons: true
                 },
+                appName: 'mydraft.cc',
+                appDescription: 'Open Source Wireframe Editor',
+                developerName: 'Sebastian Stehle',
+                developerUrl: 'https://sstehle.com',
+                start_url: '/'
             }),
 
             new plugins.StylelintPlugin({
@@ -203,7 +207,7 @@ module.exports = function configure(env) {
                  *
                  * See: https://webpack.js.org/configuration/output/#output-path
                  */
-                path: root('/build/'),
+                path: root('/docs/'),
 
                 publicPath: './',
 
@@ -228,7 +232,7 @@ module.exports = function configure(env) {
         } else {
             config.output = {
                 filename: '[name].[contenthash].js',
-
+                path: root('./'),
                 /**
                  * Set the public path, because we are running the website from another port (5000).
                  */
